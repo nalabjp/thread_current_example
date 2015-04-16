@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+require 'awesome_print'
+
+uri = URI.parse('http://localhost')
+ports = [3001, 3002, 3003]
+
+res = {}
+threads = []
+ports.each do |port|
+  res[port] = {}
+  20.times do |num|
+    threads << Thread.new do
+      begin
+        Net::HTTP.start(uri.host, port) do |http|
+          res[port][num.to_s] = http.get('/').body
+        end
+      rescue => e
+        res[port][num.to_s] = e.to_s
+      end
+    end
+  end
+end
+threads.each {|t| t.join }
+
+ap res
